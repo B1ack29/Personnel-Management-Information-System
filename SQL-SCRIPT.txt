@@ -1,0 +1,202 @@
+-- Создание таблицы users
+CREATE TABLE IF NOT EXISTS users (
+    id SERIAL PRIMARY KEY,
+    username VARCHAR(50) NOT NULL UNIQUE,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    password_hash VARCHAR(200) NOT NULL,
+    is_admin BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    last_login TIMESTAMP
+);
+
+-- Создание таблицы departments (отделы)
+CREATE TABLE IF NOT EXISTS departments (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL UNIQUE,
+    description TEXT
+);
+
+-- Создание таблицы positions (должности)
+CREATE TABLE IF NOT EXISTS positions (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL UNIQUE,
+    description TEXT
+);
+
+-- Создание таблицы employees (сотрудники)
+CREATE TABLE IF NOT EXISTS employees (
+    id SERIAL PRIMARY KEY,
+    first_name VARCHAR(50) NOT NULL,
+    last_name VARCHAR(50) NOT NULL,
+    middle_name VARCHAR(50),
+    birth_date DATE,
+    phone VARCHAR(20),
+    email VARCHAR(100) UNIQUE,
+    address VARCHAR(200),
+    hire_date DATE NOT NULL DEFAULT CURRENT_DATE,
+    salary NUMERIC(10, 2),
+    department_id INTEGER NOT NULL,
+    position_id INTEGER NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+    -- Внешние ключи
+    CONSTRAINT fk_employee_department 
+        FOREIGN KEY (department_id) 
+        REFERENCES departments(id) 
+        ON DELETE CASCADE,
+    
+    CONSTRAINT fk_employee_position 
+        FOREIGN KEY (position_id) 
+        REFERENCES positions(id) 
+        ON DELETE CASCADE
+);
+
+-- Создание индексов для оптимизации поиска
+CREATE INDEX idx_employees_department_id ON employees(department_id);
+CREATE INDEX idx_employees_position_id ON employees(position_id);
+CREATE INDEX idx_employees_last_name ON employees(last_name);
+CREATE INDEX idx_employees_email ON employees(email);
+CREATE INDEX idx_employees_hire_date ON employees(hire_date);
+
+-- Создание функции для автоматического обновления updated_at
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = CURRENT_TIMESTAMP;
+    RETURN NEW;
+END;
+$$ language 'plpgsql';
+
+-- Создание триггера для автоматического обновления updated_at
+CREATE TRIGGER update_employees_updated_at
+    BEFORE UPDATE ON employees
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+
+-- Вставка начальных данных (опционально)
+-- Добавление тестовых пользователей
+INSERT INTO users (username, email, password_hash, is_admin) VALUES 
+    ('admin', 'admin@example.com', 'pbkdf2:sha256:260000$scvJ0xLPu13t6R2q$9f8b7e6d5c4b3a2f1e0d9c8b7a6f5e4d3c2b1a0f9e8d7c6b5a4f3e2d1c0b9a8f7e6d', TRUE),
+    ('user', 'user@example.com', 'pbkdf2:sha256:260000$abcdef1234567890$1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d', FALSE)
+ON CONFLICT (username) DO NOTHING;
+
+-- Добавление отделов
+INSERT INTO departments (name, description) VALUES 
+    ('Отдел кадров', 'Управление персоналом и кадровый учет'),
+    ('Бухгалтерия', 'Финансовый учет и отчетность'),
+    ('IT отдел', 'Информационные технологии и разработка'),
+    ('Отдел продаж', 'Продажи и работа с клиентами'),
+    ('Отдел маркетинга', 'Маркетинг и реклама')
+ON CONFLICT (name) DO NOTHING;
+
+-- Добавление должностей
+INSERT INTO positions (name, description) VALUES 
+    ('Менеджер', 'Управление проектами и командой'),
+    ('Специалист', 'Исполнение задач и поручений'),
+    ('Руководитель', 'Руководство отделом'),
+    ('Бухгалтер', 'Ведение бухгалтерского учета'),
+    ('Программист', 'Разработка программного обеспечения'),
+    ('Тестировщик', 'Тестирование ПО'),
+    ('Аналитик', 'Анализ данных и требований')
+ON CONFLICT (name) DO NOTHING;
+
+-- Добавление тестового сотрудника
+INSERT INTO employees (
+    first_name, 
+    last_name, 
+    middle_name, 
+    birth_date, 
+    phone, 
+    email, 
+    address, 
+    hire_date, 
+    salary, 
+    department_id, 
+    position_id
+) 
+SELECT 
+    'Иван', 
+    'Иванов', 
+    'Иванович', 
+    '1990-01-01', 
+    '+7 (925) 123-45-67', 
+    'ivan.ivanov@example.com', 
+    'г. Москва, ул. Ленина, д. 1, кв. 1', 
+    '2023-01-15', 
+    75000.00,
+    (SELECT id FROM departments WHERE name = 'IT отдел'),
+    (SELECT id FROM positions WHERE name = 'Программист')
+WHERE NOT EXISTS (
+    SELECT 1 FROM employees WHERE email = 'ivan.ivanov@example.com'
+);
+
+-- Создание представления для удобного отображения сотрудников
+CREATE OR REPLACE VIEW v_employees_full_info AS
+SELECT 
+    e.id,
+    e.last_name || ' ' || e.first_name || COALESCE(' ' || e.middle_name, '') AS full_name,
+    e.first_name,
+    e.last_name,
+    e.middle_name,
+    e.birth_date,
+    EXTRACT(YEAR FROM AGE(e.birth_date)) AS age,
+    e.phone,
+    e.email,
+    e.address,
+    e.hire_date,
+    EXTRACT(YEAR FROM AGE(e.hire_date)) AS experience_years,
+    e.salary,
+    d.id AS department_id,
+    d.name AS department_name,
+    p.id AS position_id,
+    p.name AS position_name,
+    e.created_at,
+    e.updated_at
+FROM employees e
+JOIN departments d ON e.department_id = d.id
+JOIN positions p ON e.position_id = p.id;
+
+-- Создание функции для поиска сотрудников
+CREATE OR REPLACE FUNCTION search_employees(search_term TEXT)
+RETURNS TABLE (
+    id INTEGER,
+    full_name TEXT,
+    email VARCHAR(100),
+    phone VARCHAR(20),
+    department_name VARCHAR(100),
+    position_name VARCHAR(100)
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        e.id,
+        e.last_name || ' ' || e.first_name || COALESCE(' ' || e.middle_name, '') AS full_name,
+        e.email,
+        e.phone,
+        d.name AS department_name,
+        p.name AS position_name
+    FROM employees e
+    JOIN departments d ON e.department_id = d.id
+    JOIN positions p ON e.position_id = p.id
+    WHERE 
+        e.first_name ILIKE '%' || search_term || '%'
+        OR e.last_name ILIKE '%' || search_term || '%'
+        OR e.email ILIKE '%' || search_term || '%'
+        OR e.phone ILIKE '%' || search_term || '%';
+END;
+$$ LANGUAGE plpgsql;
+
+-- Комментарии к таблицам и колонкам
+COMMENT ON TABLE users IS 'Таблица пользователей системы';
+COMMENT ON TABLE departments IS 'Справочник отделов';
+COMMENT ON TABLE positions IS 'Справочник должностей';
+COMMENT ON TABLE employees IS 'Таблица сотрудников';
+
+COMMENT ON COLUMN employees.salary IS 'Зарплата в рублях';
+COMMENT ON COLUMN employees.hire_date IS 'Дата приема на работу';
+COMMENT ON COLUMN employees.birth_date IS 'Дата рождения';
+
+-- Создание дополнительных индексов для поиска
+CREATE INDEX idx_employees_name_search ON employees (last_name, first_name, middle_name);
+CREATE INDEX idx_employees_phone ON employees(phone);

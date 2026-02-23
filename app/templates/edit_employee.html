@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HR система - Редактирование сотрудника</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Информационная система управления кадрами</h1>
+        </header>
+        
+        <nav>
+            <a href="/">Главная</a>
+            <a href="/employees">Сотрудники</a>
+            <a href="/departments">Отделы</a>
+        </nav>
+        
+        <main>
+            <h2>Редактирование данных сотрудника</h2>
+            
+            <form action="/edit_employee/{{ employee.id }}" method="POST">
+                <div class="form-group">
+                    <label for="last_name">Фамилия*</label>
+                    <input type="text" id="last_name" name="last_name" value="{{ employee.last_name }}" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="first_name">Имя*</label>
+                    <input type="text" id="first_name" name="first_name" value="{{ employee.first_name }}" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="middle_name">Отчество</label>
+                    <input type="text" id="middle_name" name="middle_name" value="{{ employee.middle_name or '' }}">
+                </div>
+                
+                <div class="form-group">
+                    <label for="birth_date">Дата рождения*</label>
+                    <input type="date" id="birth_date" name="birth_date" value="{{ employee.birth_date }}" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="phone">Телефон*</label>
+                    <input type="tel" id="phone" name="phone" value="{{ employee.phone }}" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="email">Email*</label>
+                    <input type="email" id="email" name="email" value="{{ employee.email }}" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="address">Адрес</label>
+                    <textarea id="address" name="address" rows="3">{{ employee.address or '' }}</textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="hire_date">Дата приема*</label>
+                    <input type="date" id="hire_date" name="hire_date" value="{{ employee.hire_date }}" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="department_id">Отдел*</label>
+                    <select id="department_id" name="department_id" required>
+                        <option value="">Выберите отдел</option>
+                        {% for department in departments %}
+                        <option value="{{ department.id }}" {% if department.id == employee.department_id %}selected{% endif %}>
+                            {{ department.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="position_id">Должность*</label>
+                    <select id="position_id" name="position_id" required>
+                        <option value="">Выберите должность</option>
+                        {% for position in positions %}
+                        <option value="{{ position.id }}" {% if position.id == employee.position_id %}selected{% endif %}>
+                            {{ position.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="salary">Зарплата*</label>
+                    <input type="number" id="salary" name="salary" step="1000" value="{{ employee.salary }}" required>
+                </div>
+                
+                <button type="submit" class="btn btn-primary">Сохранить изменения</button>
+                <a href="/employees" class="btn">Отмена</a>
+            </form>
+        </main>
+    </div>
+</body>
+</html>

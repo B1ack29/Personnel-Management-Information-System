@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HR система - Результаты поиска</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Информационная система управления кадрами</h1>
+        </header>
+        
+        <nav>
+            <a href="/">Главная</a>
+            <a href="/employees">Сотрудники</a>
+            <a href="/departments">Отделы</a>
+            <a href="/logout" style="margin-left: auto;">Выйти ({{ session.username }})</a>
+        </nav>
+        
+        <main>
+            <h2>Результаты поиска: "{{ query }}"</h2>
+            
+            {% if employees %}
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>ФИО</th>
+                            <th>Email</th>
+                            <th>Телефон</th>
+                            <th>Отдел</th>
+                            <th>Должность</th>
+                            <th>Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for employee in employees %}
+                        <tr>
+                            <td>{{ employee.id }}</td>
+                            <td>{{ employee.full_name }}</td>
+                            <td>{{ employee.email }}</td>
+                            <td>{{ employee.phone }}</td>
+                            <td>{{ employee.department.name }}</td>
+                            <td>{{ employee.position.name }}</td>
+                            <td>
+                                <a href="/view_employee/{{ employee.id }}" class="btn btn-info">Просмотр</a>
+                                {% if is_admin %}
+                                <a href="/edit_employee/{{ employee.id }}" class="btn btn-edit">Изменить</a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <div class="empty-state">
+                    <p>По вашему запросу ничего не найдено.</p>
+                </div>
+            {% endif %}
+            
+            <a href="/employees" class="btn btn-primary">Вернуться к списку сотрудников</a>
+        </main>
+    </div>
+</body>
+</html>
