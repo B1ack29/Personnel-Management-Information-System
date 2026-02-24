@@ -1,58 +1,48 @@
-Personnel Management Information System
-https://img.shields.io/badge/Python-3.8%252B-blue
-https://img.shields.io/badge/Flask-2.0%252B-lightgrey
-https://img.shields.io/badge/PostgreSQL-12%252B-blue
+# 👥 Personnel Management Information System
 
-Веб-приложение для управления кадрами (HR) с разграничением прав доступа.
+![Python](https://img.shields.io/badge/Python-3.8+-blue?style=for-the-badge&logo=python)
+![Flask](https://img.shields.io/badge/Flask-2.0+-lightgrey?style=for-the-badge&logo=flask)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-12+-blue?style=for-the-badge&logo=postgresql)
+![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
 
-Возможности
-Для всех пользователей:
+> Веб-приложение для автоматизации управления кадрами (HR-система)
 
-Просмотр статистики на главной
+---
 
-Список сотрудников и отделов
+## 📋 О проекте
 
-Поиск сотрудников
+Простая и удобная HR-система для учета сотрудников, отделов и должностей с разграничением прав доступа.
 
-Детальная карточка сотрудника
+### ✨ Возможности
 
-Смена пароля
+| Роль | Действия |
+|------|----------|
+| **Пользователь** | • Просмотр сотрудников и отделов<br>• Поиск по базе<br>• Детальная информация<br>• Смена пароля |
+| **Администратор** | • Всё что у пользователя<br>• Добавление сотрудников<br>• Редактирование данных<br>• Удаление записей<br>• Управление отделами |
 
-Для администраторов:
+---
 
-Добавление/редактирование/удаление сотрудников
+## 🛠 Технологии
 
-Управление отделами
+---
 
-Технологии
-Backend: Python, Flask, PostgreSQL, pytest
+## 🚀 Быстрый старт
 
-Frontend: HTML5, CSS3, Jinja2
-
-Быстрый старт
-Клонировать репозиторий
-
-bash
+```bash
+# 1. Клонируем
 git clone https://github.com/your-username/Personnel-Management-Information-System.git
 cd Personnel-Management-Information-System
-Создать виртуальное окружение и установить зависимости
 
-bash
+# 2. Виртуальное окружение
 python -m venv venv
-source venv/bin/activate  # или venv\Scripts\activate для Windows
+source venv/bin/activate  # Windows: venv\Scripts\activate
+
+# 3. Зависимости
 pip install Flask psycopg2-binary pytest Werkzeug
-Настроить PostgreSQL
 
-Создать БД hr_system
-
-Настроить переменные в app.py или через переменные окружения
-
-Инициализировать БД
-
-bash
+# 4. Создайте БД в PostgreSQL
+# 5. Запустите инициализацию
 python -c "from app import init_database; init_database()"
-Запустить приложение
 
-bash
+# 6. Запуск
 python app.py
-Доступно по адресу: http://127.0.0.1:5000
